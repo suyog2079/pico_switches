@@ -1,3 +1,0 @@
-/home/suyog/stuff/robocon_2024/pico_switches/build/pioasm/CMakeFiles/pioasm.dir
-/home/suyog/stuff/robocon_2024/pico_switches/build/pioasm/CMakeFiles/edit_cache.dir
-/home/suyog/stuff/robocon_2024/pico_switches/build/pioasm/CMakeFiles/rebuild_cache.dir
