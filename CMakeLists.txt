@@ -20,7 +20,6 @@ add_executable(pico_switches
 target_link_libraries(pico_switches 
   pico_stdlib 
   hardware_gpio
-  Core/inc/crc8.c
 )
 
 pico_enable_stdio_uart(pico_switches 1)
