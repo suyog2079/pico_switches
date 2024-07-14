@@ -22,7 +22,7 @@ target_link_libraries(pico_switches
   hardware_gpio
 )
 
-pico_enable_stdio_uart(pico_switches 1)
+pico_enable_stdio_uart(pico_switches 0)
 pico_enable_stdio_usb(pico_switches 1)
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(pico_switches)
