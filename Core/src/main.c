@@ -129,6 +129,11 @@ void process_data(char to_recev) {
     gpio_put(red_led, 0);
     gpio_put(blue_led, 1);
   }
+  if (to_recev == 0) {
+    gpio_put(green_led, 1);
+    gpio_put(red_led, 0);
+    gpio_put(blue_led, 0);
+  }
 }
 
 // const char *bit_rep[16] = {
