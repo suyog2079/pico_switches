@@ -26,25 +26,18 @@
 #define strategy3 4
 
 void init_gpios() {
-  // initialize sensors
   stdio_init_all();
+
+  // initialize sensors
   gpio_init(sensor1);
   gpio_init(sensor2);
   gpio_init(sensor3);
   gpio_init(sensor4);
 
+  // initialize led strips
   gpio_init(red_led);
   gpio_init(green_led);
   gpio_init(blue_led);
-
-  gpio_set_dir(sensor1, GPIO_IN);
-  gpio_set_dir(sensor2, GPIO_IN);
-  gpio_set_dir(sensor3, GPIO_IN);
-  gpio_set_dir(sensor4, GPIO_IN);
-
-  gpio_set_dir(red_led, GPIO_OUT);
-  gpio_set_dir(green_led, GPIO_OUT);
-  gpio_set_dir(blue_led, GPIO_OUT);
 
   // initialize switches
   gpio_init(reset_switch);
@@ -52,35 +45,44 @@ void init_gpios() {
   gpio_init(zone);
   gpio_init(team_color_in);
 
-  gpio_set_dir(reset_switch, GPIO_IN);
-  gpio_set_dir(team_color_in, GPIO_IN);
-  gpio_set_dir(run_switch, GPIO_IN);
-  gpio_set_dir(zone, GPIO_IN);
-
-  // initialize team for strategy
+  // initialize strategy switches
   gpio_init(strategy1);
   gpio_init(strategy2);
   gpio_init(strategy3);
 
-  gpio_set_dir(strategy1, GPIO_IN);
-  gpio_set_dir(strategy2, GPIO_IN);
-  gpio_set_dir(strategy3, GPIO_IN);
-
+  // initialize reset/run switches
   gpio_init(reset_led);
   gpio_init(run_led);
 
+  // set input/output port
+  gpio_set_dir(sensor1, GPIO_IN);
+  gpio_set_dir(sensor2, GPIO_IN);
+  gpio_set_dir(sensor3, GPIO_IN);
+  gpio_set_dir(sensor4, GPIO_IN);
+  gpio_set_dir(red_led, GPIO_OUT);
+  gpio_set_dir(green_led, GPIO_OUT);
+  gpio_set_dir(blue_led, GPIO_OUT);
+  gpio_set_dir(reset_switch, GPIO_IN);
+  gpio_set_dir(team_color_in, GPIO_IN);
+  gpio_set_dir(run_switch, GPIO_IN);
+  gpio_set_dir(zone, GPIO_IN);
+  gpio_set_dir(strategy1, GPIO_IN);
+  gpio_set_dir(strategy2, GPIO_IN);
+  gpio_set_dir(strategy3, GPIO_IN);
   gpio_set_dir(reset_led, GPIO_OUT);
   gpio_set_dir(run_led, GPIO_OUT);
 
+  // set internal pullup/pulldown resistors
+  gpio_set_pulls(run_switch, false, true);
+  gpio_set_pulls(reset_switch, false, true);
+
+  // initialize initial state
   gpio_put(green_led, 1);
   gpio_put(reset_led, 0);
   gpio_put(run_led, 0);
   gpio_put(blue_led, 0);
   gpio_put(red_led, 0);
 }
-
-// int counter_green = 300;
-// int counter_red = 300;
 
 char get_state() {
   char data = 0;
@@ -94,23 +96,14 @@ char get_state() {
     changed = true;
   }
   if (gpio_get(run_switch)) {
-    // counter_green = 0;
     data ^= 0b00100000;
     changed = true;
   }
-  // if (counter_green < 300) {
-  //   data ^= 0b00100000;
-  //   counter_green++;
-  // }
   if (gpio_get(reset_switch)) {
     // counter_red = 0;
     data ^= 0b00010000;
     changed = true;
   }
-  // if (counter_red < 300) {
-  //   data ^= 0b00010000;
-  //   counter_red++;
-  // }
   if (changed) {
     return data;
   } else {
