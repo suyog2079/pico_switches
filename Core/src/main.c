@@ -144,17 +144,17 @@ char get_state() {
 
 void process_data(char first_byte, char second_byte) {
   if (second_byte == 0) {
-    if (to_recev & 0b10000000) {
+    if (first_byte & 0b10000000) {
       gpio_put(green_led, 0);
       gpio_put(red_led, 1);
       gpio_put(blue_led, 0);
     }
-    if (to_recev & 0b01000000) {
+    if (first_byte & 0b01000000) {
       gpio_put(green_led, 0);
       gpio_put(red_led, 0);
       gpio_put(blue_led, 1);
     }
-    if (to_recev == 0) {
+    if (first_byte == 0) {
       gpio_put(green_led, 1);
       gpio_put(red_led, 0);
       gpio_put(blue_led, 0);
