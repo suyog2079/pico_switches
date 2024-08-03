@@ -72,14 +72,45 @@ void init_gpios() {
   gpio_set_dir(reset_led, GPIO_OUT);
   gpio_set_dir(run_led, GPIO_OUT);
 
-  // set internal pullup/pulldown resistors
+  // set the input pins to be pulldown
   gpio_set_pulls(run_switch, false, true);
   gpio_set_pulls(reset_switch, false, true);
 
   // initialize initial state
+}
+
+void start_sequence() {
+  gpio_put(red_led, 1);
+  gpio_put(blue_led, 0);
+  gpio_put(green_led, 0);
+  sleep_ms(200);
+  gpio_put(red_led, 0);
+  gpio_put(blue_led, 1);
+  gpio_put(green_led, 0);
+  sleep_ms(200);
+  gpio_put(red_led, 0);
+  gpio_put(blue_led, 0);
   gpio_put(green_led, 1);
+  sleep_ms(200);
+  gpio_put(red_led, 1);
+  gpio_put(blue_led, 1);
+  gpio_put(green_led, 0);
+  sleep_ms(200);
+  gpio_put(red_led, 1);
+  gpio_put(blue_led, 0);
+  gpio_put(green_led, 1);
+  sleep_ms(200);
+  gpio_put(red_led, 0);
+  gpio_put(blue_led, 1);
+  gpio_put(green_led, 1);
+  sleep_ms(200);
+  gpio_put(red_led, 1);
+  gpio_put(blue_led, 1);
+  gpio_put(green_led, 1);
+  sleep_ms(200);
   gpio_put(reset_led, 0);
   gpio_put(run_led, 0);
+  gpio_put(green_led, 1);
   gpio_put(blue_led, 0);
   gpio_put(red_led, 0);
 }
@@ -111,21 +142,49 @@ char get_state() {
   }
 }
 
-void process_data(char to_recev) {
-  if (to_recev & 0b10000000) {
-    gpio_put(green_led, 0);
-    gpio_put(red_led, 1);
-    gpio_put(blue_led, 0);
-  }
-  if (to_recev & 0b01000000) {
-    gpio_put(green_led, 0);
-    gpio_put(red_led, 0);
-    gpio_put(blue_led, 1);
-  }
-  if (to_recev == 0) {
-    gpio_put(green_led, 1);
-    gpio_put(red_led, 0);
-    gpio_put(blue_led, 0);
+void process_data(char first_byte, char second_byte) {
+  if (second_byte == 0) {
+    if (to_recev & 0b10000000) {
+      gpio_put(green_led, 0);
+      gpio_put(red_led, 1);
+      gpio_put(blue_led, 0);
+    }
+    if (to_recev & 0b01000000) {
+      gpio_put(green_led, 0);
+      gpio_put(red_led, 0);
+      gpio_put(blue_led, 1);
+    }
+    if (to_recev == 0) {
+      gpio_put(green_led, 1);
+      gpio_put(red_led, 0);
+      gpio_put(blue_led, 0);
+    }
+  } else {
+    if (second_byte == 1) {
+      gpio_put(green_led, 1);
+      gpio_put(red_led, 1);
+      gpio_put(blue_led, 0);
+    }
+    if (second_byte == 2) {
+      gpio_put(green_led, 0);
+      gpio_put(red_led, 1);
+      gpio_put(blue_led, 1);
+    }
+    if (second_byte == 3) {
+      gpio_put(green_led, 1);
+      gpio_put(red_led, 0);
+      gpio_put(blue_led, 1);
+    }
+    if (second_byte == 4) {
+      gpio_put(green_led, 1);
+      gpio_put(red_led, 1);
+      gpio_put(blue_led, 1);
+    }
+    if (second_byte == 5) {
+      gpio_put(green_led, 1);
+      gpio_put(red_led, 0);
+      gpio_put(blue_led, 0);
+    }
   }
 }
 
@@ -142,23 +201,14 @@ void process_data(char to_recev) {
 
 int main() {
   init_gpios();
-  bool prev_recev = false;
+  start_sequence();
   char start_byte = 0xA5;
-  char false_alarm = 10;
+  char first_byte, second_byte;
   while (true) {
-    absolute_time_t tim = get_absolute_time();
     char to_send = get_state();
     printf("%c%c", start_byte, to_send);
-    char to_recev = getchar_timeout_us(20);
-    if (!prev_recev && to_recev != 255) {
-      process_data(to_recev);
-      prev_recev = true;
-    } else if (prev_recev && to_recev != false_alarm && to_recev != 255) {
-      process_data(to_recev);
-      prev_recev = true;
-    } else {
-      prev_recev = false;
-    }
+    absolute_time_t tim = get_absolute_time();
+    scanf("%c%c", &first_byte, &second_byte);
     while ((get_absolute_time() - tim) <= 20000) {
     }
   }
