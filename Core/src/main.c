@@ -6,38 +6,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define sensor1 19
-#define sensor2 20
-#define sensor3 21
-#define sensor4 22
+#define team_color_in 17
+#define reset_switch 15
+#define zone 16
+#define run_switch 14
+#define red_led 11
+#define green_led 10
+#define blue_led 9
 
-#define team_color_in 14
-#define reset_switch 10
-#define reset_led 11
-#define zone 13
-#define run_switch 6
-#define run_led 5
-#define red_led 26
-#define green_led 27
-#define blue_led 28
-
-#define strategy1 0
-#define strategy2 3
-#define strategy3 4
+#define strategy1 20
+#define strategy2 19
+#define strategy3 18
+#define internal_led 25
 
 void init_gpios() {
   stdio_init_all();
-
-  // initialize sensors
-  gpio_init(sensor1);
-  gpio_init(sensor2);
-  gpio_init(sensor3);
-  gpio_init(sensor4);
 
   // initialize led strips
   gpio_init(red_led);
   gpio_init(green_led);
   gpio_init(blue_led);
+  gpio_init(internal_led);
 
   // initialize switches
   gpio_init(reset_switch);
@@ -50,15 +39,7 @@ void init_gpios() {
   gpio_init(strategy2);
   gpio_init(strategy3);
 
-  // initialize reset/run switches
-  gpio_init(reset_led);
-  gpio_init(run_led);
-
   // set input/output port
-  gpio_set_dir(sensor1, GPIO_IN);
-  gpio_set_dir(sensor2, GPIO_IN);
-  gpio_set_dir(sensor3, GPIO_IN);
-  gpio_set_dir(sensor4, GPIO_IN);
   gpio_set_dir(red_led, GPIO_OUT);
   gpio_set_dir(green_led, GPIO_OUT);
   gpio_set_dir(blue_led, GPIO_OUT);
@@ -69,14 +50,11 @@ void init_gpios() {
   gpio_set_dir(strategy1, GPIO_IN);
   gpio_set_dir(strategy2, GPIO_IN);
   gpio_set_dir(strategy3, GPIO_IN);
-  gpio_set_dir(reset_led, GPIO_OUT);
-  gpio_set_dir(run_led, GPIO_OUT);
+  gpio_set_dir(internal_led, GPIO_OUT);
 
-  // set the input pins to be pulldown
+  // set run switch to input pulldown and reset switch to input pullup
   gpio_set_pulls(run_switch, false, true);
-  gpio_set_pulls(reset_switch, false, true);
-
-  // initialize initial state
+  gpio_set_pulls(reset_switch, true, false);
 }
 
 void start_sequence() {
@@ -108,8 +86,6 @@ void start_sequence() {
   gpio_put(blue_led, 1);
   gpio_put(green_led, 1);
   sleep_ms(200);
-  gpio_put(reset_led, 0);
-  gpio_put(run_led, 0);
   gpio_put(green_led, 1);
   gpio_put(blue_led, 0);
   gpio_put(red_led, 0);
@@ -132,7 +108,22 @@ char get_state() {
   }
   if (gpio_get(reset_switch)) {
     // counter_red = 0;
+    data ^= 0b00000000;
+    changed = true;
+  } else {
     data ^= 0b00010000;
+    changed = true;
+  }
+  if (gpio_get(strategy1)) {
+    data ^= 0b00001000;
+    changed = true;
+  }
+  if (gpio_get(strategy2)) {
+    data ^= 0b00000100;
+    changed = true;
+  }
+  if (gpio_get(strategy3)) {
+    data ^= 0b00000010;
     changed = true;
   }
   if (changed) {
@@ -201,11 +192,14 @@ int main() {
   start_sequence();
   char start_byte = 0xA5;
   char recev_byte;
+  gpio_put(internal_led, 1);
   while (true) {
     char to_send = get_state();
+    // print_byte(to_send);
     printf("%c%c", start_byte, to_send);
-    absolute_time_t tim = get_absolute_time();
-    scanf("%c", &recev_byte);
-    process_data(recev_byte);
+    uint16_t temp = getchar_timeout_us(20000);
+    if (temp >= 0 && temp <= 255) {
+      process_data((char)temp);
+    }
   }
 }
